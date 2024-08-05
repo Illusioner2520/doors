@@ -231,11 +231,6 @@ async def process_message(message):
         if s['guild'] == message.guild.id:
             number = s['number']
             last_user = s['last_user']
-            if last_user == message.author.id and not s['individual_mode'] and s['number'] != 0:
-                await message.add_reaction("❌")
-                await message.channel.send(f"**{message.author.mention} ruined it at {str(number)}!** You can't count twice in a row! You can toggle on Individual Mode to enable this with </toggle:1269760558194884741>. (Next number is {s['count_by']})", reference=message)
-                await reset_progress(message)
-                return
             if message.author.bot:
                 if len(message.content) >= 1 and await process_math(message.content) is not None:
                     await message.channel.send(f"Bots cannot count", reference=message)
@@ -247,6 +242,11 @@ async def process_message(message):
                     next_number = int(message.content.split()[0])
                 except Exception as e:
                     return None
+            if last_user == message.author.id and not s['individual_mode'] and s['number'] != 0 and next_number is not None:
+                await message.add_reaction("❌")
+                await message.channel.send(f"**{message.author.mention} ruined it at {str(number)}!** You can't count twice in a row! You can toggle on Individual Mode to enable this with </toggle:1269760558194884741>. (Next number is {s['count_by']})", reference=message)
+                await reset_progress(message)
+                return
 
             if s['numbers_only'] and (len(message.content.split()) > 1 or next_number is None):
                 await message.add_reaction("❌")
