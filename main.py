@@ -18,8 +18,6 @@ import ast
 discord.MemberCacheFlags.all()
 
 bot = discord.Bot(intents=discord.Intents.all())
-async def go_to_minecraft():
-    await bot.change_presence(activity=discord.Game(name="Minecraft"))
 
 # discord.opus.load_opus("libopus")
 f = open("save.txt", "r")
