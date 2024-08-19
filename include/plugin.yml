@@ -1,0 +1,7 @@
+name: CountingBot
+main: net.illusioncraft.Doors.Doors
+version: 1.8
+description: Discord Bot
+api-version: 1.13
+commands:
+author: Illusioner
