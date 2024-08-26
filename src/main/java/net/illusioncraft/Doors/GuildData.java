@@ -2,7 +2,9 @@ package net.illusioncraft.Doors;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,13 +34,26 @@ public class GuildData {
 	public String emoji_incorrect;
 	@JsonProperty("users")
 	public List<UserData> users;
+	@JsonProperty("emoji_numbers")
+	public Map<String, String> emoji_numbers;
 	
 	@Override
 	public String toString() {
 		String usersstring = getUserString();
-		return "{\"guild_id\": \"" + guild_id.toString() + "\",\"emoji_correct\": \"" + emoji_correct + "\",\"emoji_incorrect\":\"" + emoji_incorrect + "\", \"math\": " + math.toString() + ", \"numbers_only\": " + numbers_only.toString() + ", \"number\": " + number.toString() + ", \"last_user\": \"" + last_user.toString() + "\", \"channel\": \"" + channel.toString() + "\", \"count_by\": " + count_by.toString() + ", \"individual_mode\": " + individual_mode.toString() + ", \"max_number\":" + max_number.toString() + ", \"users\": " + usersstring + "}";
+		return "{\"guild_id\": \"" + guild_id.toString() + "\",\"emoji_numbers\": " + generateEmojiNumberString() + ",\"emoji_correct\": \"" + emoji_correct + "\",\"emoji_incorrect\":\"" + emoji_incorrect + "\", \"math\": " + math.toString() + ", \"numbers_only\": " + numbers_only.toString() + ", \"number\": " + number.toString() + ", \"last_user\": \"" + last_user.toString() + "\", \"channel\": \"" + channel.toString() + "\", \"count_by\": " + count_by.toString() + ", \"individual_mode\": " + individual_mode.toString() + ", \"max_number\":" + max_number.toString() + ", \"users\": " + usersstring + "}";
 	}
 	
+	private String generateEmojiNumberString() {
+		String str = "{";
+		List<String> nums = new ArrayList<>(emoji_numbers.keySet());
+		for (int i = 0; i < nums.size(); i++) {
+			String currentnumber = nums.get(i);
+			str += "\"" + currentnumber + "\":\"" + emoji_numbers.get(currentnumber) + "\",";
+		}
+		if (!str.equals("{")) str = removeLastChar(str);
+		return str = "}";
+	}
+
 	private String getUserString() {
 		String str = "[";
 		for (int i = 0; i < users.size(); i++) {
@@ -61,6 +76,7 @@ public class GuildData {
 		this.individual_mode = false;
 		this.max_number = 0;
 		this.users = new ArrayList<>();
+		this.emoji_numbers = new HashMap<>();
 		if (a != null) {
 			if (a == "guild_id") this.guild_id = (String) b;
 			if (a == "math") this.math = (Boolean) b;
@@ -74,6 +90,7 @@ public class GuildData {
 			if (a == "individual_mode") this.individual_mode = (Boolean) b;
 			if (a == "max_number") this.max_number = (Integer) b;
 			if (a == "users") this.users = (List<UserData>) b;
+			if (a == "emoji_numbers") this.emoji_numbers = (Map<String, String>) b;
 		}
 	}
 	public static String removeLastChar(String s) {
