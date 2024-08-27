@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -455,6 +456,11 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
 	private void process_message(MessageReceivedEvent event) {
 		for (int i = 0; i < guildcache.size(); i++) {
 			if (guildcache.get(i).guild_id.equals(event.getGuild().getId())) {
+				if (guildcache.get(i).emoji_numbers == null) {
+					GuildData gcache = guildcache.get(i);
+					gcache.emoji_numbers = new HashMap<>();
+					guildcache.set(i, gcache);
+				}
 				GuildData data = guildcache.get(i);
 				Integer number = data.number;
 				String last_user = data.last_user;
