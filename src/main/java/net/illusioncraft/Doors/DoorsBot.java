@@ -219,6 +219,7 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
         		for (int i = 0; i < guildcache.size(); i++) {
         			if (guildcache.get(i).guild_id.equals(event.getGuild().getId())) {
         				GuildData data = guildcache.get(i);
+        				if (data.emoji_numbers == null) data.emoji_numbers = new HashMap<>();
         				data.emoji_numbers.put(number.toString(), event.getOption("emoji").getAsString());
         				eb10.setDescription("Your emoji for the number " + number.toString() + " is now " + event.getOption("emoji").getAsString());
         				event.replyEmbeds(eb10.build()).queue();
@@ -408,19 +409,20 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
         					if (gdata.users.get(j).user.equals(user_id)) {
         						UserData data = gdata.users.get(j);
         						Float percentage = (float) (((float) data.correct / (float) (data.correct + data.incorrect)) * 100);
-        						eb9.setDescription("**User data for " + user_name + ":**\nCorrect " + gdata.emoji_correct + " : **" + data.correct.toString() + "**\nIncorrect " + gdata.emoji_incorrect + " : **" + data.incorrect.toString() + "**\nPercentage Correct: `" + percentage.toString() + "`");
+        						eb9.setDescription("**User data for " + user_name + ":**\nCorrect " + gdata.emoji_correct + " : **" + data.correct.toString() + "**\nIncorrect " + gdata.emoji_incorrect + " : **" + data.incorrect.toString() + "**\nPercentage Correct: **" + percentage.toString() + "%**");
         						if (user_name != data.name) {
         							data.name = user_name;
         							gdata.users.set(j, data);
         							guildcache.set(i, gdata);
         						}
         		    			event.replyEmbeds(eb9.build()).queue();
+        		    			return;
         					}
         				}
         			}
         		}
-        		eb9.setDescription("Unable to find that user.");
-        		event.replyEmbeds(eb9.build()).queue();
+            	eb9.setDescription("Unable to find that user.");
+            	event.replyEmbeds(eb9.build()).queue();
         		return;
         	case "say":
         		event.reply(event.getOption("words").getAsString()).queue();
@@ -456,11 +458,6 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
 	private void process_message(MessageReceivedEvent event) {
 		for (int i = 0; i < guildcache.size(); i++) {
 			if (guildcache.get(i).guild_id.equals(event.getGuild().getId())) {
-				if (guildcache.get(i).emoji_numbers == null) {
-					GuildData gcache = guildcache.get(i);
-					gcache.emoji_numbers = new HashMap<>();
-					guildcache.set(i, gcache);
-				}
 				GuildData data = guildcache.get(i);
 				Integer number = data.number;
 				String last_user = data.last_user;
@@ -502,7 +499,9 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
 				}
 				if (next_number != null) {
 					if (next_number.equals(number + data.count_by)) {
-						if (data.emoji_correct != null) {
+						if (data.emoji_numbers != null && data.emoji_numbers.get(next_number.toString()) != null) {
+							event.getMessage().addReaction(Emoji.fromFormatted(data.emoji_numbers.get(next_number.toString()))).queue();
+						} else if (data.emoji_correct != null) {
 							event.getMessage().addReaction(Emoji.fromFormatted(data.emoji_correct)).queue();
 						} else {
 							event.getMessage().addReaction(Emoji.fromFormatted("✅")).queue();
