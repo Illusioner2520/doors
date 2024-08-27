@@ -44,6 +44,7 @@ public class GuildData {
 	}
 	
 	private String generateEmojiNumberString() {
+		if (emoji_numbers == null) return "{}";
 		String str = "{";
 		List<String> nums = new ArrayList<>(emoji_numbers.keySet());
 		for (int i = 0; i < nums.size(); i++) {
@@ -51,7 +52,7 @@ public class GuildData {
 			str += "\"" + currentnumber + "\":\"" + emoji_numbers.get(currentnumber) + "\",";
 		}
 		if (!str.equals("{")) str = removeLastChar(str);
-		return str = "}";
+		return str + "}";
 	}
 
 	private String getUserString() {
