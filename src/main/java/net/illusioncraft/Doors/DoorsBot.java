@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -129,6 +130,12 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
                             .addChoice("Incorrect", "Incorrect")
                     ).addOption(OptionType.STRING, "emoji", "Emoji to Use",true)
         );
+        commands.addCommands(
+        		Commands.slash("setemojifornumber", "Set Emoji").addOption(OptionType.INTEGER, "number", "Number to set the emoji for",true).addOption(OptionType.STRING, "emoji", "Emoji to Use",true)
+        );
+        commands.addCommands(
+        		Commands.slash("user", "Get data about a user").addOption(OptionType.USER, "user", "User to get info from",false)
+        );
         
         commands.queue();
 	}
@@ -205,20 +212,23 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
 				eb3.setDescription("You are now counting by " +  event.getOption("count_by").getAsString());
     			event.replyEmbeds(eb3.build()).queue();
     			return;
+        	case "setemojifornumber":
+        		EmbedBuilder eb10 = getEmbed();
+        		Integer number = event.getOption("number").getAsInt();
+        		for (int i = 0; i < guildcache.size(); i++) {
+        			if (guildcache.get(i).guild_id.equals(event.getGuild().getId())) {
+        				GuildData data = guildcache.get(i);
+        				data.emoji_numbers.put(number.toString(), event.getOption("emoji").getAsString());
+        				eb10.setDescription("Your emoji for the number " + number.toString() + " is now " + event.getOption("emoji").getAsString());
+        				event.replyEmbeds(eb10.build()).queue();
+            			return;
+        			}
+        		}
+        		eb10.setDescription("An error has occurred.");
+				event.replyEmbeds(eb10.build()).queue();
+        		return;
         	case "setemoji":
         		EmbedBuilder eb8 = getEmbed();
-    			EmojiUnion emoji = Emoji.fromFormatted(event.getOption("emoji").getAsString());
-    			try {
-    				CustomEmoji cuem = emoji.asCustom();
-    			} catch (IllegalStateException e) {
-    				try {
-    					UnicodeEmoji unem = emoji.asUnicode();
-    				} catch (IllegalStateException er) {
-    					eb8.setDescription(event.getOption("emoji").getAsString() + " could not be parsed into an emoji.");
-            			event.replyEmbeds(eb8.build()).queue();
-            			return;
-    				}
-    			}
         		
     			String setfor = event.getOption("setfor").getAsString();
         		if (setfor.equals("Correct")) {
@@ -382,6 +392,35 @@ public class DoorsBot extends ListenerAdapter implements EventListener {
         		}
     			event.replyEmbeds(eb6.build()).queue();
     			return;
+        	case "user":
+        		EmbedBuilder eb9 = getEmbed();
+        		Member user = event.getMember();
+        		if (event.getOption("user") != null) {
+        			user = event.getOption("user").getAsMember();
+        		}
+        		String user_name = user.getUser().getName();
+        		String user_id = user.getId();
+        		for (int i = 0; i < guildcache.size(); i++) {
+        			if (guildcache.get(i).guild_id.equals(event.getGuild().getId())) {
+        				for (int j = 0; j < guildcache.get(i).users.size(); j++) {
+        					GuildData gdata = guildcache.get(i);
+        					if (gdata.users.get(j).user.equals(user_id)) {
+        						UserData data = gdata.users.get(j);
+        						Float percentage = (float) (((float) data.correct / (float) (data.correct + data.incorrect)) * 100);
+        						eb9.setDescription("**User data for " + user_name + ":**\nCorrect " + gdata.emoji_correct + " : **" + data.correct.toString() + "**\nIncorrect " + gdata.emoji_incorrect + " : **" + data.incorrect.toString() + "**\nPercentage Correct: `" + percentage.toString() + "`");
+        						if (user_name != data.name) {
+        							data.name = user_name;
+        							gdata.users.set(j, data);
+        							guildcache.set(i, gdata);
+        						}
+        		    			event.replyEmbeds(eb9.build()).queue();
+        					}
+        				}
+        			}
+        		}
+        		eb9.setDescription("Unable to find that user.");
+        		event.replyEmbeds(eb9.build()).queue();
+        		return;
         	case "say":
         		event.reply(event.getOption("words").getAsString()).queue();
         		return;
