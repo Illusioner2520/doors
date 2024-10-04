@@ -21,7 +21,6 @@ global cache
 global queue
 globals()['queue'] = []
 c = f.read()
-print(c)
 globals()['cache'] = [] if c == "" else ast.literal_eval(c)
 print("Cache loaded: " + str(globals()['cache']))
 f.close()
@@ -244,11 +243,9 @@ async def new_embed():
     )
     return embed
 
-def save():
-    print("Saving the data")
+async def save():
     with open("save.txt", "w", encoding='utf-8') as file:
         v = str(globals()['cache'])
-        print(v)
         file.write(v)
 
 async def process_math(string):
@@ -267,7 +264,6 @@ async def reset_progress(message):
     c = await get_user_value(message.guild.id,message.author.id,"incorrect")
     await set_user_value(message.guild.id,message.author.id,"incorrect",c+1)
     await set_user_value(message.guild.id,message.author.id,"name",message.author.name)
-    print(f"{message.author.name} ruined it.")
     return
 
 async def turn_into_int(v):
@@ -341,6 +337,12 @@ async def process_messages():
         message = await message_queue.get()
         await process_message(message)
         message_queue.task_done()
+    
+async def execute_periodically(interval):
+    while True:
+        print("Saving...")
+        await save()
+        await asyncio.sleep(interval)
 
 @bot.listen()
 async def on_message(message):
@@ -353,10 +355,6 @@ async def on_message(message):
 @bot.listen()
 async def on_connect():
     bot.loop.create_task(process_messages())
-
-
-my_scheduler = sched.scheduler(time.time, time.sleep)
-my_scheduler.enter(60, 1, save)
-my_scheduler.run()
+    bot.loop.create_task(execute_periodically(60))
 
 bot.run("[TOKEN]")
