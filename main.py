@@ -1,13 +1,7 @@
-from asyncio import streams
-from sys import maxsize
-from discord.ext.commands.bot import Bot
 import discord
 import random
-from discord import Intents
 from discord import option
-from discord import Option
 from math import *
-import sched, time
 import ast
 import asyncio
 
@@ -15,7 +9,6 @@ discord.MemberCacheFlags.all()
 
 bot = discord.Bot(intents=discord.Intents.all())
 
-# discord.opus.load_opus("libopus")
 f = open("save.txt", "r", encoding='utf-8')
 global cache
 global queue
@@ -341,7 +334,6 @@ async def process_messages():
 async def execute_periodically(interval):
     while True:
         await asyncio.sleep(interval)
-        print("Saving...")
         await save()
 
 @bot.listen()
