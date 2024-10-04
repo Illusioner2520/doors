@@ -340,9 +340,9 @@ async def process_messages():
     
 async def execute_periodically(interval):
     while True:
+        await asyncio.sleep(interval)
         print("Saving...")
         await save()
-        await asyncio.sleep(interval)
 
 @bot.listen()
 async def on_message(message):
