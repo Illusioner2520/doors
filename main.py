@@ -16,11 +16,13 @@ discord.MemberCacheFlags.all()
 bot = discord.Bot(intents=discord.Intents.all())
 
 # discord.opus.load_opus("libopus")
-f = open("save.txt", "r")
+f = open("save.txt", "r", encoding='utf-8')
 global cache
 global queue
 globals()['queue'] = []
-globals()['cache'] =  ast.literal_eval(f.read())
+c = f.read()
+print(c)
+globals()['cache'] = [] if c == "" else ast.literal_eval(c)
 print("Cache loaded: " + str(globals()['cache']))
 f.close()
 
@@ -243,11 +245,11 @@ async def new_embed():
     return embed
 
 def save():
-    print("Saving the data: " + str(globals()['cache']))
-    f = open("save.txt", "w")
-    f.write(str(globals()['cache']))
-    f.flush()
-    f.close()
+    print("Saving the data")
+    with open("save.txt", "w", encoding='utf-8') as file:
+        v = str(globals()['cache'])
+        print(v)
+        file.write(v)
 
 async def process_math(string):
     try:
@@ -353,8 +355,8 @@ async def on_connect():
     bot.loop.create_task(process_messages())
 
 
-# my_scheduler = sched.scheduler(time.time, time.sleep)
-# my_scheduler.enter(60, 1, save)
-# my_scheduler.run()
+my_scheduler = sched.scheduler(time.time, time.sleep)
+my_scheduler.enter(60, 1, save)
+my_scheduler.run()
 
 bot.run("[TOKEN]")
