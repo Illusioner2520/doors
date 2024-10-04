@@ -11,8 +11,6 @@ bot = discord.Bot(intents=discord.Intents.all())
 
 f = open("save.txt", "r", encoding='utf-8')
 global cache
-global queue
-globals()['queue'] = []
 c = f.read()
 globals()['cache'] = [] if c == "" else ast.literal_eval(c)
 print("Cache loaded: " + str(globals()['cache']))
