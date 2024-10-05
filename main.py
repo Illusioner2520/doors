@@ -4,6 +4,7 @@ from discord import option
 from math import *
 import ast
 import asyncio
+import re
 
 discord.MemberCacheFlags.all()
 
@@ -91,7 +92,7 @@ async def count_by(ctx,count_by):
 @option("equation",str,description="Equation")
 async def calc(ctx,equation):
     embed = await new_embed()
-    embed.description = "```" + equation + " = " + str(await process_math(equation)) + "```"
+    embed.description = "```" + equation + " = " + str(await process_math(equation)).replace("j","i") + "```"
     await ctx.respond(embed=embed)
         
 @bot.slash_command(name="debug",description="Debug the bot")
@@ -241,8 +242,21 @@ async def save():
 
 async def process_math(string):
     try:
-        val = int(eval(string.split()[0].replace("^", "**").replace("\\","")))
+        val = re.sub(r"(\d|\)|e|pi)(\d|\(|e|pi)", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))
+        print(val)
+        val = eval(val)
+        try:
+            if (val.imag == 0):
+                val = val.real
+        except Exception as e:
+            val = val
         return val
+    except Exception as e:
+        return None
+
+async def process_math_2(string):
+    try:
+        return (await process_math(string)).real
     except Exception as e:
         return None
 
@@ -292,10 +306,13 @@ async def process_message(message):
     d = await get_entire_data(message.guild.id)
     n = d['number']
     l = d['last_user']
-    m = await process_math(message.content) if d['math'] else await turn_into_int(message.content.split()[0])
+    m = await turn_into_int((await process_math_2(message.content))) if d['math'] else await turn_into_int(message.content.split()[0])
     if m is None:
         if d['numbers_only'] and not message.author.bot:
-            await message.add_reaction(d['emoji_incorrect'])
+            try:
+                await message.add_reaction(d['emoji_incorrect'])
+            except Exception as e:
+                await message.add_reaction("❌")
             await message.channel.send(f"**{message.author.mention} ruined it at {str(n)}!** You can only say numbers! You can toggle off Numbers Only mode to disable this with </toggle:1269760558194884741>. (Next number is {d['count_by']})", reference=message)
             await reset_progress(message)
         return
@@ -303,7 +320,10 @@ async def process_message(message):
         await message.channel.send(f"Bots cannot count", reference=message)
         return
     if l == message.author.id and not d['individual_mode'] and d['number'] != 0:
-        await message.add_reaction(d['emoji_incorrect'])
+        try:
+            await message.add_reaction(d['emoji_incorrect'])
+        except Exception as e:
+            await message.add_reaction("❌")
         await message.channel.send(f"**{message.author.mention} ruined it at {str(n)}!** You can't count twice in a row! You can toggle on Individual Mode to enable this with </toggle:1269760558194884741>. (Next number is {d['count_by']})", reference=message)
         await reset_progress(message)
         return
@@ -312,12 +332,18 @@ async def process_message(message):
         c = await get_user_value(message.guild.id,message.author.id,"correct")
         await set_user_value(message.guild.id,message.author.id,"correct",c+1)
         await set_user_value(message.guild.id,message.author.id,"name",message.author.name)
-        await message.add_reaction(e)
+        try:
+            await message.add_reaction(e)
+        except Exception as e:
+            await message.add_reaction("✅")
         d['number'] = m
         d['last_user'] = message.author.id
         return
     elif n != 0:
-        await message.add_reaction(d['emoji_incorrect'])
+        try:
+            await message.add_reaction(d['emoji_incorrect'])
+        except Exception as e:
+            await message.add_reaction("❌")
         await message.channel.send(f"**{message.author.mention} ruined it at {str(n)}!** Wrong number! (Next number is {d['count_by']})", reference=message)
         await reset_progress(message)
         return
