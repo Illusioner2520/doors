@@ -72,7 +72,7 @@ async def info(ctx):
     await ctx.respond(embed=embed)
 
 @bot.slash_command(name="setchannel",description="Set the counting channel")
-@option("channel",discord.TextChannel,description="The channel to set as the counting channel",required=False)
+@option("channel",discord.TextChannel,description="The channel to set as the counting channel",required=False,channel_types=[discord.ChannelType.text, discord.ChannelType.voice, discord.ChannelType.private, discord.ChannelType.group, discord.ChannelType.news, discord.ChannelType.news_thread, discord.ChannelType.public_thread, discord.ChannelType.private_thread, discord.ChannelType.stage_voice])
 async def set_channel(ctx,channel):
     nchannel = channel if channel is not None else ctx.channel
     await set_value(ctx.guild.id,"channel",nchannel.id)
@@ -92,7 +92,13 @@ async def count_by(ctx,count_by):
 @option("equation",str,description="Equation")
 async def calc(ctx,equation):
     embed = await new_embed()
-    embed.description = "```" + equation + " = " + str(await process_math(equation)).replace("j","i") + "```"
+    embed.description = "```" + equation + " = " + str(await process_math(equation)).replace("j","i").replace("(","").replace(")","") + "```"
+    await ctx.respond(embed=embed)
+
+@bot.message_command(name="Calculate Message")  # creates a global message command. use guild_ids=[] to create guild-specific commands.
+async def get_message_id(ctx, message: discord.Message):  # message commands return the message
+    embed = await new_embed()
+    embed.description = "```" + message.content.replace("\\","") + " = " + str(await process_math(message.content)).replace("j","i").replace("(","").replace(")","") + "```"
     await ctx.respond(embed=embed)
         
 @bot.slash_command(name="debug",description="Debug the bot")
@@ -242,7 +248,7 @@ async def save():
 
 async def process_math(string):
     try:
-        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))
+        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))))
         print(val)
         val = eval(val)
         try:
