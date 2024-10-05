@@ -242,7 +242,7 @@ async def save():
 
 async def process_math(string):
     try:
-        val = re.sub(r"(\d|\)|e|pi)(\d|\(|e|pi)", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))
+        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))
         print(val)
         val = eval(val)
         try:
