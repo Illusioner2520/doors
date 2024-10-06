@@ -17,8 +17,21 @@ c = f.read()
 globals()['cache'] = [] if c == "" else ast.literal_eval(c)
 print("Cache loaded: " + str(globals()['cache']))
 f.close()
+f = open("insults.txt","r",encoding='utf-8')
+c = f.read()
+insults = ast.literal_eval(c)
+f.close()
+f = open("counts.txt","r",encoding='utf-8')
+c=f.read()
+counts = ast.literal_eval(c)
+f.close()
+affected_count_users = []
+for c in counts:
+    for d in c['targeted_users']:
+        affected_count_users.append(d)
 
 message_queue = asyncio.Queue()
+
 
 async def create_guild(g,a,b):
     dict = {}
@@ -257,6 +270,9 @@ async def save():
     with open("save.txt", "w", encoding='utf-8') as file:
         v = str(globals()['cache'])
         file.write(v)
+    with open("counts.txt", "w", encoding='utf-8') as file:
+        v = str(counts)
+        file.write(v)
 
 async def process_math(string):
     try:
@@ -368,7 +384,8 @@ async def process_message(message):
             await message.add_reaction(d['emoji_incorrect'])
         except Exception as e:
             await message.add_reaction("❌")
-        await message.channel.send(f"**{message.author.mention} ruined it at {str(n)}!** Wrong number! (Next number is {d['count_by']})", reference=message)
+        i = random.choice(insults)
+        await message.channel.send(f"\n ## *\"{i['insult']}\" -{i['credit']}*\n**{message.author.mention} ruined it at {str(n)}!** Wrong number! (Next number is {d['count_by']})", reference=message)
         await reset_progress(message)
         return
     
@@ -391,6 +408,13 @@ async def on_message(message):
         await message_queue.put(message)
     elif c == 0 and not message.author.bot and await process_math(message.content) is not None:
         await message.channel.send("Please set a counting channel with </setchannel:1269760558194884740>", reference=message)
+    if message.author.id in affected_count_users:
+        for c in counts:
+            if message.author.id in c['targeted_users']:
+                for w in c['targeted_words']:
+                    if w in message.content:
+                        c['current_count'] += 1
+                        await message.channel.send(c['name'] + ": " + str(c['current_count']), reference=message)
 
 @bot.listen()
 async def on_connect():
