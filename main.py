@@ -19,10 +19,6 @@ f.close()
 
 message_queue = asyncio.Queue()
 
-intents = discord.Intents.default()
-intents.members=True
-intents.message_content=True
-
 async def create_guild(g,a,b):
     dict = {}
     dict['guild'] = g
@@ -92,13 +88,15 @@ async def count_by(ctx,count_by):
 @option("equation",str,description="Equation")
 async def calc(ctx,equation):
     embed = await new_embed()
-    embed.description = "```" + equation + " = " + str(await process_math(equation)).replace("j","i").replace("(","").replace(")","") + "```"
+    v = str(await process_math(equation)).replace("j","i").replace("(","").replace(")","")
+    embed.description = "```" + equation + " = " + v + "```" if v != "None" else "```" + equation + " could not be solved.```"
     await ctx.respond(embed=embed)
 
-@bot.message_command(name="Calculate Message")  # creates a global message command. use guild_ids=[] to create guild-specific commands.
-async def get_message_id(ctx, message: discord.Message):  # message commands return the message
+@bot.message_command(name="Calculate Message")
+async def get_message_id(ctx, message: discord.Message):
     embed = await new_embed()
-    embed.description = "```" + message.content.replace("\\","") + " = " + str(await process_math(message.content)).replace("j","i").replace("(","").replace(")","") + "```"
+    v = str(await process_math(message.content)).replace("j","i").replace("(","").replace(")","")
+    embed.description = "```" + message.content.replace("\\","") + " = " + v + "```" if v != "None" else "```" + message.content.replace("\\","") + " could not be solved.```"
     await ctx.respond(embed=embed)
         
 @bot.slash_command(name="debug",description="Debug the bot")
@@ -126,11 +124,11 @@ async def toggle(ctx,feature):
 async def setemoji(ctx,setfor,emoji):
     embed = await new_embed()
     if setfor == "Correct":
-        await set_value(ctx.guild.id,"emoji_correct",emoji)
-        embed.description = "The correct emoji is now " + emoji
+        await set_value(ctx.guild.id,"emoji_correct",emoji.replace("\\",""))
+        embed.description = "The correct emoji is now " + emoji.replace("\\","")
     elif setfor == "Incorrect":
-        await set_value(ctx.guild.id,"emoji_incorrect",emoji)
-        embed.description = "The incorrect emoji is now " + emoji
+        await set_value(ctx.guild.id,"emoji_incorrect",emoji.replace("\\",""))
+        embed.description = "The incorrect emoji is now " + emoji.replace("\\","")
     await ctx.respond(embed=embed)
 
 @bot.slash_command(name="setemojifornumber",description="Set the emoji for a specific number")
@@ -139,9 +137,9 @@ async def setemoji(ctx,setfor,emoji):
 async def setemojifornumber(ctx,number,emoji):
     embed = await new_embed()
     v = await get_value(ctx.guild.id,"emoji_numbers")
-    v[str(number)] = emoji
+    v[str(number)] = emoji.replace("\\","")
     await set_value(ctx.guild.id,"emoji_numbers",v)
-    embed.description = "The emoji for the number " + str(number) + " is now " + emoji
+    embed.description = "The emoji for the number " + str(number) + " is now " + emoji.replace("\\","")
     await ctx.respond(embed=embed)
 
 @bot.slash_command(name="clearemojifornumber",description="Clear the emoji for a number")
@@ -182,6 +180,19 @@ async def leaderboard(ctx,leaderboard):
 async def user(ctx,user):
     embed = await new_embed()
     u = user if user is not None else ctx.author
+    i = await get_user_value(ctx.guild.id,u.id,"incorrect")
+    c = await get_user_value(ctx.guild.id,u.id,"correct")
+    try:
+        p = round(c / (i + c) * 100,2)
+    except Exception as e:
+        p = None
+    embed.description = "**User data for " + u.name + ":**\nCorrect " + (await get_value(ctx.guild.id,"emoji_correct")) + ": **" + str(c) + "**\nIncorrect " + (await get_value(ctx.guild.id,"emoji_incorrect")) + ": **" + str(i) + "**\nPercentage: **" + str(p) + "%**"
+    await ctx.respond(embed=embed)
+
+@bot.user_command(name="User Data")
+async def user_data(ctx, user: discord.User):
+    embed = await new_embed()
+    u = user
     i = await get_user_value(ctx.guild.id,u.id,"incorrect")
     c = await get_user_value(ctx.guild.id,u.id,"correct")
     try:
@@ -248,7 +259,7 @@ async def save():
 
 async def process_math(string):
     try:
-        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))))
+        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("pie","pi*e").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))))
         print(val)
         val = eval(val)
         try:
@@ -262,7 +273,7 @@ async def process_math(string):
 
 async def process_math_2(string):
     try:
-        return (await process_math(string)).real
+        return round((await process_math(string)).real)
     except Exception as e:
         return None
 
@@ -378,5 +389,6 @@ async def on_message(message):
 async def on_connect():
     bot.loop.create_task(process_messages())
     bot.loop.create_task(execute_periodically(60))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="you count")) 
 
 bot.run("[TOKEN]")
