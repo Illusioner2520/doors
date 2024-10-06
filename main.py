@@ -5,6 +5,7 @@ from math import *
 import ast
 import asyncio
 import re
+import cmath
 
 discord.MemberCacheFlags.all()
 
@@ -259,7 +260,7 @@ async def save():
 
 async def process_math(string):
     try:
-        val = re.sub(r"(sqrt\(\-)([0-9]+\))", r"sqrt(\2*(1j)",str(re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("^", "**").replace("pie","pi*e").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))))
+        val = re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("sqrt","cmath.sqrt").replace("^", "**").replace("pie","pi*e").replace("\\","").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))
         print(val)
         val = eval(val)
         try:
