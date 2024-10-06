@@ -293,6 +293,12 @@ async def turn_into_int(v):
         return int(v)
     except Exception as e:
         return None
+    
+async def get_num(m):
+    try:
+        return await turn_into_int(m.split()[0])
+    except Exception as e:
+        return None
 
 async def get_user_value(g,u,a):
     for s in globals()['cache']:
@@ -323,7 +329,7 @@ async def process_message(message):
     d = await get_entire_data(message.guild.id)
     n = d['number']
     l = d['last_user']
-    m = await turn_into_int((await process_math_2(message.content))) if d['math'] else await turn_into_int(message.content.split()[0])
+    m = await turn_into_int((await process_math_2(message.content))) if d['math'] else await get_num(message.content)
     if m is None:
         if d['numbers_only'] and not message.author.bot:
             try:
