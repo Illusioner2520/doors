@@ -385,7 +385,7 @@ async def process_message(message):
         except Exception as e:
             await message.add_reaction("❌")
         i = random.choice(insults)
-        await message.channel.send(f"\n ## *\"{i['insult']}\" -{i['credit']}*\n**{message.author.mention} ruined it at {str(n)}!** Wrong number! (Next number is {d['count_by']})", reference=message)
+        await message.channel.send(f"\n ## *\"{i['insult']}\"*\n**{message.author.mention} ruined it at {str(n)}!** Wrong number! (Next number is {d['count_by']})", reference=message)
         await reset_progress(message)
         return
     
