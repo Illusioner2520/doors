@@ -275,7 +275,8 @@ async def save():
         file.write(v)
 
 async def process_math(string):
-    if (string.split()[0] == "i") return None
+    if (string.split()[0] == "i"):
+        return None
     try:
         val = re.sub(r"([abcdefghiklmnopqrstuvwxyz]|[A-Z]|\))([0-9])",r"\1*\2",str(re.sub(r"([0-9]|\))(\(|[abcdefghiklmnopqrstuvwxyz]|[A-Z])", r"\1*\2",string.split()[0].replace("sqrt","cmath.sqrt").replace("^", "**").replace("pie","pi*e").replace("\\","").replace("is","|s").replace("eil","e|l").replace("sig","s|g").replace("di","d|").replace("pi","p|").replace("in","|n").replace("ria","r|a").replace("i","(1j)").replace("|","i"))))
         print(val)
